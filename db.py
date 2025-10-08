@@ -19,25 +19,27 @@ def crear_tablas():
     c = conn.cursor() # Creación del cursor que ejecuta las consultas SQL
 
     # Creación de la tabla usuarios
-    c.execute('''
+    c.execute("""
     CREATE TABLE IF NOT EXISTS usuarios (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               nombre TEXT NOT NULL,
               email TEXT UNIQUE NOT NULL,
-              password_hash TEXT NOT NULL,
-              salt TEXT NOT NULL
+              password_hash BLOB NOT NULL,
+              salt BLOB NOT NULL
               )
-    ''')
+    """)
 
     # Creación de la tabla votos
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS votos (
+    c.execute(
+    """CREATE TABLE IF NOT EXISTS votos (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               usuario_id INTEGER NOT NULL,
-              voto_cifrado TEXT NOT NULL,
+              voto_cifrado BLOB NOT NULL,
+              nonce BLOB NOT NULL,
+              aad BLOB,
               FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
               )
-    ''')
+    """)
 
     # Hacemos commit de los cambios y cerramos la conexión
     conn.commit() 
