@@ -3,6 +3,7 @@ Se encarga de controlar el sistema de votación. Cifra el voto antes de guardarl
 guarda este voto cifrado en la tabla correspondiente de la base de datos
 """
 import os
+import logging
 from db import conectar
 
 # Hemos elegido el algoritmo de encriptación AES-GCM (en cryptography.io)
@@ -52,4 +53,5 @@ def almacenar_voto(usuario_id, voto):
 
     conn.commit()
     conn.close()
+    logging.info(f" Voto cifrado con AES-GCM (256 bits) almacenado para usuario ID {usuario_id}.")
     print("Voto cifrado almacenado correctamente en la base de datos")
