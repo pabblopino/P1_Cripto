@@ -1,0 +1,39 @@
+2025-10-26 12:19:53,719 - WARNING - Intento de registro con contraseña demasiado corta.
+2025-10-26 12:19:53,720 - INFO - Registro fallido para Alejandro89ros89@gmail.com: contraseña débil.
+2025-10-26 12:20:18,758 - ERROR - Error inesperado: no such table: usuarios
+2025-10-26 12:22:05,773 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 12:23:19,931 - INFO - Usuario registrado correctamente: Alejandro89ros89@gmail.com
+2025-10-26 12:24:13,463 - INFO - Inicio de sesión correcto: Alejandro89ros89@gmail.com
+2025-10-26 12:24:20,041 - ERROR - Error al cifrar el voto: No existe la clave en datos/clave_aes.key
+2025-10-26 12:24:32,149 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 12:30:22,220 - INFO - Inicio de sesión correcto: Alejandro89ros89@gmail.com
+2025-10-26 12:30:27,565 - ERROR - Error al cifrar el voto: No existe la clave en datos/clave_aes.key
+2025-10-26 12:30:32,534 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 12:34:02,442 - INFO - Inicio de sesión correcto: Alejandro89ros89@gmail.com
+2025-10-26 12:34:07,317 - ERROR - Error al cifrar el voto: No existe la clave en datos/clave_aes.key
+2025-10-26 12:42:43,592 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 12:43:02,853 - WARNING - Ejecución interrumpida manualmente (Ctrl+C).
+2025-10-26 12:43:30,446 - WARNING - Intento de registro con contraseña demasiado corta.
+2025-10-26 12:43:30,446 - INFO - Registro fallido para Pepe@gmail.com: contraseña débil.
+2025-10-26 12:43:48,947 - INFO - Usuario registrado correctamente: Pepe@gmail.com
+2025-10-26 12:44:02,678 - INFO - Inicio de sesión correcto: Pepe@gmail.com
+2025-10-26 12:44:06,370 - ERROR - Error al cifrar el voto: No existe la clave en datos/clave_aes.key
+2025-10-26 12:44:16,090 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 12:47:19,283 - INFO - Inicio de sesión correcto: Pepe@gmail.com
+2025-10-26 12:47:24,422 - INFO -  Voto cifrado con AES-GCM (256 bits) almacenado para usuario ID 2.
+2025-10-26 13:01:23,450 - WARNING - Opción inválida introducida en menú: & C:/Users/USUARIO/AppData/Local/Python/pythoncore-3.14-64/python.exe
+2025-10-26 13:01:26,449 - WARNING - Opción inválida introducida en menú: print("   " + info_msg)
+2025-10-26 13:06:16,987 - INFO - Inicio de sesión correcto: Pepe@gmail.com
+2025-10-26 13:06:20,867 - INFO - Descifrado: Algoritmo AES-GCM | Longitud de clave: 256 bits | AAD: 'votacion'
+2025-10-26 13:06:41,291 - INFO - Inicio de sesión correcto: Pepe@gmail.com
+2025-10-26 13:06:45,551 - INFO -  Voto cifrado con AES-GCM (256 bits) almacenado para usuario ID 2.
+2025-10-26 13:07:09,352 - INFO - Inicio de sesión correcto: Pepe@gmail.com
+2025-10-26 13:07:11,462 - INFO - Descifrado: Algoritmo AES-GCM | Longitud de clave: 256 bits | AAD: 'votacion'
+2025-10-26 13:07:16,106 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 13:55:08,176 - INFO - Usuario registrado correctamente: Rodrigo@fresa.com
+2025-10-26 13:55:33,921 - INFO - Inicio de sesión correcto: Rodrigo@fresa.com
+2025-10-26 13:55:41,415 - INFO -  Voto cifrado con AES-GCM (256 bits) almacenado para usuario ID 3.
+2025-10-26 13:56:33,836 - INFO - Inicio de sesión correcto: Rodrigo@fresa.com
+2025-10-26 13:56:45,833 - INFO - Descifrado: Algoritmo AES-GCM | Longitud de clave: 256 bits | AAD: 'votacion'
+2025-10-26 13:56:49,216 - INFO - Aplicación finalizada por el usuario.
+2025-10-26 17:05:06,774 - WARNING - Ejecución interrumpida manualmente (Ctrl+C).

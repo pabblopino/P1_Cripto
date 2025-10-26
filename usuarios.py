@@ -9,6 +9,8 @@ import sqlite3
 import logging
 from db import conectar
 
+os.makedirs("datos", exist_ok=True)
+
 # Configuración básica de logging
 # Crea o añade entradas a un archivo de registro (para trazabilidad de eventos)
 # En vez de usar print() para mostrar todo por pantalla (que se pierde al cerrar la app), logging guarda la información en un archivo de registro (log)
