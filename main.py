@@ -1,7 +1,7 @@
 import os
 import logging
 from usuarios import registrar_usuario, autenticar_usuario
-from votos import almacenar_voto, descifrar_voto, obtener_voto, actualizar_voto
+from votos import almacenar_voto, descifrar_voto, obtener_voto, actualizar_voto, generar_clave
 from db import crear_tablas
 
 os.makedirs("datos", exist_ok=True)

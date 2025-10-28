@@ -37,3 +37,12 @@
 2025-10-26 13:56:45,833 - INFO - Descifrado: Algoritmo AES-GCM | Longitud de clave: 256 bits | AAD: 'votacion'
 2025-10-26 13:56:49,216 - INFO - Aplicaci�n finalizada por el usuario.
 2025-10-26 17:05:06,774 - WARNING - Ejecuci�n interrumpida manualmente (Ctrl+C).
+2025-10-28 23:51:19,317 - INFO - Clave AES generada y almacenada en /home/pablo/Escritorio/Informática/3º curso/Cripto/P1/datos/clave_aes.key
+2025-10-28 23:51:53,354 - INFO - Registro fallido para moyano@fresigo.fres: contraseña débil.
+2025-10-28 23:52:20,974 - INFO - Usuario registrado correctamente: moyano@fresigo.fres
+2025-10-28 23:52:42,545 - INFO - Inicio de sesión correcto: moyano@fresigo.fres
+2025-10-28 23:52:48,778 - INFO -  Voto cifrado con AES-GCM (256 bits) almacenado para usuario ID 4.
+2025-10-28 23:53:05,223 - INFO - Inicio de sesión correcto: moyano@fresigo.fres
+2025-10-28 23:53:08,799 - INFO - Descifrado: Algoritmo AES-GCM | Longitud de clave: 256 bits | AAD: 'votacion'
+2025-10-28 23:56:00,096 - INFO - Clave AES generada y almacenada en /home/pablo/Escritorio/Informática/3º curso/Cripto/P1/datos/clave_aes.key
+2025-10-28 23:56:04,764 - WARNING - Ejecución interrumpida manualmente (Ctrl+C).

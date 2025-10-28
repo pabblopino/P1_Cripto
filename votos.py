@@ -11,7 +11,6 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Ruta del propio archivo votos.py
 DATOS_DIR = os.path.join(BASE_DIR, "datos")
-os.makedirs(DATOS_DIR, exist_ok=True)
 
 KEY_PATH = os.path.join(DATOS_DIR, "clave_aes.key")
 LOG_PATH = os.path.join(DATOS_DIR, "app.log")
@@ -31,7 +30,6 @@ def generar_clave():
     clave = AESGCM.generate_key(bit_length=256)
     # Antes de guardar la clave, nos aseguramos de que exista la carpeta 'datos/'.
     # Si no existe, esta línea la crea automáticamente para evitar errores al escribir el archivo.
-    os.makedirs(os.path.dirname(KEY_PATH), exist_ok=True)
     with open(KEY_PATH, "wb") as f:
         f.write(clave)
     logging.info(f"Clave AES generada y almacenada en {KEY_PATH}")
