@@ -1,7 +1,7 @@
 import os
 import logging
 from usuarios import registrar_usuario, autenticar_usuario
-from votos import almacenar_voto, descifrar_voto, obtener_voto, actualizar_voto, generar_clave
+from votos import almacenar_voto, descifrar_voto, obtener_voto, actualizar_voto, cargar_clave
 from db import crear_tablas
 
 os.makedirs("datos", exist_ok=True)
@@ -9,7 +9,7 @@ crear_tablas()
 
 # Asegura que la clave AES exista antes de cualquier voto
 try:
-    generar_clave()
+    cargar_clave()
 except Exception as e:
     print("Error al generar la clave AES:", e)
 
@@ -25,21 +25,21 @@ def main():
     print("🗳️  SISTEMA DE VOTACIÓN SEGURA  🗳️")
     print("===================================")
 
-    while True:
-        print("\nMenú principal:")
-        print("1. Registrar usuario")
-        print("2. Iniciar sesión y votar")
-        print("3. Salir")
+    try:
+        while True:
+            print("\nMenú principal:")
+            print("1. Registrar usuario")
+            print("2. Iniciar sesión y votar")
+            print("3. Salir")
 
-        opcion = input("> ").strip()
+            opcion = input("> ").strip()
 
-        # Validación de opción
-        if opcion not in ("1", "2", "3"):
-            print("Opción no válida. Por favor, elige 1, 2 o 3.")
-            logging.warning(f"Opción inválida introducida en menú: {opcion}")
-            continue
+            # Validación de opción
+            if opcion not in ("1", "2", "3"):
+                print("Opción no válida. Por favor, elige 1, 2 o 3.")
+                logging.warning(f"Opción inválida introducida en menú: {opcion}")
+                continue
 
-        try:
             if opcion == "1":
                 nombre = input("Nombre: ").strip()
                 email = input("Email: ").strip()
@@ -79,14 +79,13 @@ def main():
                 logging.info("Aplicación finalizada por el usuario.")
                 break
 
-        except KeyboardInterrupt:
-            print("\n Programa interrumpido por el usuario.")
-            logging.warning("Ejecución interrumpida manualmente (Ctrl+C).")
-            break
+    except KeyboardInterrupt:
+        print("\n Programa interrumpido por el usuario.")
+        logging.warning("Ejecución interrumpida manualmente (Ctrl+C).")
 
-        except Exception as e:
-            print("Ha ocurrido un error inesperado.")
-            logging.error("Error inesperado: %s", str(e))
+    except Exception as e:
+        print("Ha ocurrido un error inesperado.")
+        logging.error("Error inesperado: %s", str(e))
 
 # ----------------------------------------
 # EJECUCIÓN DIRECTA
