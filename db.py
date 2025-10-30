@@ -15,7 +15,7 @@ def conectar():
 
 def crear_tablas():
     """Crea las tablas usuarios y votos en la base de datos (si no existen)"""
-    conn = conectar() # No es mejor conn = sqlite3.connect(DB_PATH)?
+    conn = conectar() # Conecta con la base de datos
     c = conn.cursor() # Creación del cursor que ejecuta las consultas SQL
 
     # Creación de la tabla usuarios
