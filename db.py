@@ -46,6 +46,19 @@ def crear_tablas():
               )
     """)
 
+    # Creación de la tabla votos compartidos
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS votos_compartidos (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              voto_origen_id INTEGER NOT NULL,
+              receptor_id INTEGER NOT NULL,
+              clave_aes_receptor BLOB NOT NULL,     -- La clave AES cifrada con la pública del receptor
+              
+              FOREIGN KEY(voto_origen_id) REFERENCES votos(id),
+              FOREIGN KEY(receptor_id) REFERENCES usuarios(id)
+              )
+    """)
+
     # Hacemos commit de los cambios y cerramos la conexión
     conn.commit() 
     conn.close()

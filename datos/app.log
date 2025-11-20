@@ -1,10 +1,13 @@
-2025-11-20 16:16:27,330 - INFO - Usuario registrado correctamente: pablo@.com
-2025-11-20 16:16:34,974 - INFO - Inicio de sesión correcto: pablo@.com
-2025-11-20 16:16:38,168 - INFO - Voto almacenado con cifrado híbrido para usuario 1
-2025-11-20 16:17:06,491 - INFO - Voto almacenado con cifrado híbrido para usuario 1
-2025-11-20 16:17:35,034 - INFO - Inicio de sesión correcto: pablo@.com
-2025-11-20 16:17:57,533 - INFO - Usuario registrado correctamente: alejandro@.com
-2025-11-20 16:18:15,493 - INFO - Inicio de sesión correcto: alejandro@.com
-2025-11-20 16:18:20,933 - INFO - Voto almacenado con cifrado híbrido para usuario 2
-2025-11-20 16:18:37,318 - INFO - Voto almacenado con cifrado híbrido para usuario 2
-2025-11-20 16:18:58,433 - INFO - Inicio de sesión correcto: pablo@.com
+2025-11-20 21:55:36,771 - INFO - Usuario registrado correctamente: alex@.com
+2025-11-20 21:56:27,401 - INFO - Usuario registrado correctamente: pablo@.com
+2025-11-20 21:56:29,262 - INFO - Aplicación finalizada por el usuario.
+2025-11-20 21:56:50,869 - INFO - Inicio de sesión correcto: pablo@.com
+2025-11-20 21:56:58,618 - INFO - Voto almacenado con cifrado híbrido para usuario 2
+2025-11-20 21:57:31,217 - INFO - Inicio de sesión correcto: alex@.com
+2025-11-20 21:57:37,862 - INFO - Voto almacenado con cifrado híbrido para usuario 1
+2025-11-20 21:58:54,784 - INFO - Inicio de sesión correcto: pablo@.com
+2025-11-20 21:59:28,206 - INFO - Usuario registrado correctamente: fresi@.com
+2025-11-20 21:59:42,763 - INFO - Inicio de sesión correcto: fresi@.com
+2025-11-20 22:00:02,746 - INFO - Voto almacenado con cifrado híbrido para usuario 3
+2025-11-20 22:00:33,215 - WARNING - Opción inválida introducida en menú: 2çdfs
+2025-11-20 22:00:46,739 - INFO - Inicio de sesión correcto: pablo@.com

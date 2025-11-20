@@ -166,3 +166,26 @@ def autenticar_usuario(email, password):
     print("Email o contraseña incorrectos.")
     logging.warning(f"Inicio de sesión fallido: {email}")
     return None
+
+
+# ==========================================
+# ===== FUNCIONES PARA COMPARTIR VOTOS =====
+# ==========================================
+
+def obtener_info_receptor(email):
+    """
+    Busca un usuario por email y devuelve su información pública: ID y Clave Pública
+    Sirve para poder enviarle cosas cifradas
+    """
+    conn = conectar()
+    c = conn.cursor()
+    c.execute("SELECT id, public_key FROM usuarios WHERE email = ?", (email,))
+    result = c.fetchone()
+    conn.close()
+
+    if result:
+        user_id, pub_key = result
+        pub_key_obj = serialization.load_pem_public_key(pub_key)
+        return user_id, pub_key_obj
+    else:
+        return None # Tratar esto al llamar a esta función e imprimir error

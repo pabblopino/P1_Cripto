@@ -1,7 +1,7 @@
 import os
 import logging
 from usuarios import registrar_usuario, autenticar_usuario
-from votos import almacenar_voto, descifrar_voto, obtener_voto, actualizar_voto
+from votos import almacenar_voto, descifrar_voto, obtener_voto, actualizar_voto, compartir_voto, ver_votos_compartidos
 from db import crear_tablas
 
 os.makedirs("datos", exist_ok=True)
@@ -30,8 +30,10 @@ def main():
             if usuario_id is not None:
                 print(f"\nSesión del usuario {usuario_id}") # !! Aquí igual podríamos poner el nombre u otra cosa
                 print("1. Ver/Actualizar mi voto")
-                print("2. Cerrar sesión")
-                print("3. Salir")
+                print("2. Compartir mi voto")
+                print("3. Ver mis votos compartidos")
+                print("4. Cerrar sesión")
+                print("5. Salir")
 
                 opcion = input("> ").strip()
 
@@ -60,15 +62,22 @@ def main():
                         voto = input("Aún no has votado. Introduce tu voto: ").strip()
                         # Usamos la clave PÚBLICA para guardar
                         almacenar_voto(usuario_id, voto, usuario_pub_key)
-
+                
                 elif opcion == "2":
+                    email_destino = input("Email del usuario con quien compartir: ").strip()
+                    compartir_voto(usuario_id, email_destino, usuario_priv_key)
+
+                elif opcion == "3":
+                    ver_votos_compartidos(usuario_id, usuario_priv_key)
+
+                elif opcion == "4":
                     # Borramos las claves de la memoria
                     usuario_id = None
                     usuario_priv_key = None
                     usuario_pub_key = None
                     print("Sesión cerrada.")
                     
-                elif opcion == "3":
+                elif opcion == "5":
                     break
 
                 else:
