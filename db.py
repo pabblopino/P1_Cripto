@@ -25,7 +25,11 @@ def crear_tablas():
               nombre TEXT NOT NULL,
               email TEXT UNIQUE NOT NULL,
               password_hash BLOB NOT NULL,
-              salt BLOB NOT NULL
+              salt_auth BLOB NOT NULL,
+              public_key BLOB NOT NULL,     -- Clave Pública RSA (PEM)
+              private_key_enc BLOB NOT NULL,-- Clave Privada RSA (Cifrada)
+              salt_priv BLOB NOT NULL,
+              nonce_priv BLOB NOT NULL
               )
     """)
 
@@ -35,8 +39,9 @@ def crear_tablas():
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               usuario_id INTEGER NOT NULL,
               voto_cifrado BLOB NOT NULL,
-              nonce BLOB NOT NULL,
+              nonce_aes BLOB NOT NULL,
               aad BLOB,
+              clave_aes_cifrada BLOB NOT NULL, -- La clave AES cifrada con RSA
               FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
               )
     """)
