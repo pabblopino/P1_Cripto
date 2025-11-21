@@ -42,6 +42,7 @@ def crear_tablas():
               nonce_aes BLOB NOT NULL,
               aad BLOB,
               clave_aes_cifrada BLOB NOT NULL, -- La clave AES cifrada con RSA
+              firma BLOB NOT NULL,
               FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
               )
     """)
@@ -55,7 +56,8 @@ def crear_tablas():
               clave_aes_receptor BLOB NOT NULL,     -- La clave AES cifrada con la pública del receptor
               
               FOREIGN KEY(voto_origen_id) REFERENCES votos(id),
-              FOREIGN KEY(receptor_id) REFERENCES usuarios(id)
+              FOREIGN KEY(receptor_id) REFERENCES usuarios(id),
+              UNIQUE(voto_origen_id, receptor_id)
               )
     """)
 

@@ -48,20 +48,25 @@ def main():
                         
                         if subopcion == "1":
                             # Usamos la clave PRIVADA para leer
-                            texto = descifrar_voto(voto_data, usuario_priv_key)
-                            print(f"Tu voto secreto es: {texto}")
+                            texto_voto, estado_firma = descifrar_voto(voto_data, usuario_priv_key, usuario_pub_key)
+                            if texto_voto:
+                                print(f"Tu voto secreto es: {texto_voto}")
+                                print(f"Estado: {estado_firma}")
+                            else:
+                                # Si texto_voto es None (porque falló la firma)
+                                print(estado_firma)
                             
                         elif subopcion == "2":
                             nuevo_voto = input("Nuevo voto: ").strip()
                             # Usamos la clave PÚBLICA para guardar el nuevo
-                            actualizar_voto(usuario_id, nuevo_voto, usuario_pub_key)
+                            actualizar_voto(usuario_id, nuevo_voto, usuario_pub_key, usuario_priv_key)
                         else:
                             print("Opción no válida. Por favor, elige 1 o 2")
                             continue
                     else:
                         voto = input("Aún no has votado. Introduce tu voto: ").strip()
                         # Usamos la clave PÚBLICA para guardar
-                        almacenar_voto(usuario_id, voto, usuario_pub_key)
+                        almacenar_voto(usuario_id, voto, usuario_pub_key, usuario_priv_key)
                 
                 elif opcion == "2":
                     email_destino = input("Email del usuario con quien compartir: ").strip()

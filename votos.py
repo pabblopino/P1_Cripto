@@ -4,13 +4,15 @@ guarda este voto cifrado en la tabla correspondiente de la base de datos
 """
 import os
 import logging
+import sqlite3
 from db import conectar
 from usuarios import obtener_info_receptor
 
 # Hemos elegido el algoritmo de encriptación AES-GCM (en cryptography.io)
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.exceptions import InvalidSignature
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Ruta del propio archivo votos.py
 DATOS_DIR = os.path.join(BASE_DIR, "datos")
@@ -28,7 +30,7 @@ KEY_LENGTH_BITS = 256
 AAD_DESCRIPTION = "'votacion'"
 
 
-def almacenar_voto(usuario_id, voto, public_key):
+def almacenar_voto(usuario_id, voto, public_key, private_key):
     """
     Realiza el Cifrado Híbrido:
     1. Genera clave AES única. 2. Cifra voto con AES. 3. Cifra clave AES con RSA Pública.
@@ -36,7 +38,18 @@ def almacenar_voto(usuario_id, voto, public_key):
     conn = conectar()
     c = conn.cursor()
 
-    # 1. Generamos la clave de sesión AES que se va a usar para cifrar este voto
+    # 1. Generamos la firma digital en el voto, con la clave privada del usuario
+    signature = private_key.sign(
+        voto.encode(),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    logging.info(f"Firma digital generada para el usuario {usuario_id} (Algoritmo: RSA-PSS-SHA256)")
+
+    # 2. Generamos la clave de sesión AES que se va a usar para cifrar este voto
     clave_sesion_aes = AESGCM.generate_key(bit_length=256)
     aes = AESGCM(clave_sesion_aes)
     # Nonce (number used once), un valor aleatorio usado junto a la clave para cifrar.
@@ -45,10 +58,10 @@ def almacenar_voto(usuario_id, voto, public_key):
     ## AAD (Additional Authenticted Data), datos autenticados pero no cifrados.
     aad = b"votacion"
 
-    # 2. Ciframos el voto con AESGCM
+    # 3. Ciframos el voto con AESGCM
     voto_cifrado = aes.encrypt(nonce_aes, voto.encode(), aad)
 
-    # 3. Ciframos la clave AES con la clave pública RSA del usuario
+    # 4. Ciframos la clave AES con la clave pública RSA del usuario
     clave_sesion_cifr = public_key.encrypt(
         clave_sesion_aes,
         padding.OAEP(
@@ -58,10 +71,10 @@ def almacenar_voto(usuario_id, voto, public_key):
         )
     )
 
-    # 4. Guardamos todo en la base de datos
+    # 5. Guardamos todo en la base de datos
     c.execute(
-        "INSERT INTO votos (usuario_id, voto_cifrado, nonce_aes, aad, clave_aes_cifrada) VALUES (?, ?, ?, ?, ?)",
-        (usuario_id, voto_cifrado, nonce_aes, aad, clave_sesion_cifr)
+        "INSERT INTO votos (usuario_id, voto_cifrado, nonce_aes, aad, clave_aes_cifrada, firma) VALUES (?, ?, ?, ?, ?, ?)",
+        (usuario_id, voto_cifrado, nonce_aes, aad, clave_sesion_cifr, signature)
     )
 
     conn.commit()
@@ -70,13 +83,13 @@ def almacenar_voto(usuario_id, voto, public_key):
     print("Voto cifrado (AES) y clave protegida (RSA) correctamente.")
 
 
-def descifrar_voto(voto_dat, private_key):
+def descifrar_voto(voto_dat, private_key, public_key):
     """
     Descifrado Híbrido:
     1. Descifra la clave AES (la llave del sobre) usando la Clave Privada RSA.
     2. Descifra el voto con la clave AES recuperada.
     """
-    voto_cifrado, nonce_aes, aad, clave_aes_cifrada_rsa = voto_dat
+    voto_cifrado, nonce_aes, aad, clave_aes_cifrada_rsa, firma = voto_dat
 
     try:
         # 1. Recuperar la clave AES (Usando tu llave privada RSA)
@@ -89,34 +102,95 @@ def descifrar_voto(voto_dat, private_key):
             )
         )
 
-        # 2. Descifrar el Voto con la clave AES recuperada
+        # 2. Descifrar el voto con la clave AES recuperada
         aes = AESGCM(clave_sesion_aes)
-        voto_plano = aes.decrypt(nonce_aes, voto_cifrado, aad)
+        voto_plano_bytes = aes.decrypt(nonce_aes, voto_cifrado, aad)
+        voto_plano = voto_plano_bytes.decode()
+
+        # 3. Verificar la firma digital del voto
+        try:
+            public_key.verify(
+                firma,
+                voto_plano_bytes,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+            print("✅ Firma Digital VÁLIDA (Integridad confirmada)")
+            return voto_plano, "Verificación de firma digital exitosa."
+
+        except InvalidSignature as e:
+            logging.critical(f"Fallo en verificación de firma: {e}")
+            return None, "❌ ALERTA: Firma Digital INVÁLIDA (El voto podría estar manipulado)"
         
-        return voto_plano.decode()
+        
     
     except Exception as e:
         logging.error(f"Error descifrando voto híbrido: {e}")
-        return "❌ Error: Voto no descifrable (Clave privada incorrecta o datos corruptos)."
+        return None, "❌ Error: Voto no descifrable (Clave privada incorrecta o datos corruptos)."
 
 
 def obtener_voto(usuario_id):
     """Devuelve los datos cifrados necesarios para el descifrado."""
     conn = conectar()
     c = conn.cursor()
-    c.execute("SELECT voto_cifrado, nonce_aes, aad, clave_aes_cifrada FROM votos WHERE usuario_id = ?", (usuario_id,))
+    c.execute("SELECT voto_cifrado, nonce_aes, aad, clave_aes_cifrada, firma FROM votos WHERE usuario_id = ?", (usuario_id,))
     resultado = c.fetchone()
     conn.close()
     return resultado  # Devuelve tupla (voto_cifrado, nonce_aes, aad, clave_aes_cifrada) o None
 
-def actualizar_voto(usuario_id, nuevo_voto, public_key):
+def actualizar_voto(usuario_id, nuevo_voto, public_key, private_key):
     """Borra el voto anterior y almacena uno nuevo"""
     conn = conectar()
     c = conn.cursor()
-    c.execute("DELETE FROM votos WHERE usuario_id = ?", (usuario_id,))
+
+    # 1. Generamos la nueva firma
+    signature = private_key.sign(
+        nuevo_voto.encode(),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+
+    # 2. Generamos nueva clave AES y ciframos el nuevo contenido
+    clave_sesion_aes = AESGCM.generate_key(bit_length=256)
+    aes = AESGCM(clave_sesion_aes)
+    nonce_aes = os.urandom(12)
+    aad = b"votacion"
+    voto_cifrado = aes.encrypt(nonce_aes, nuevo_voto.encode(), aad)
+
+    # 3. Ciframos la nueva clave AES con RSA
+    clave_sesion_cifr = public_key.encrypt(
+        clave_sesion_aes,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+
+    # 4. Borramos de la tabla votos_compartidos si es que era uno de ellos
+    c.execute("DELETE FROM votos_compartidos WHERE voto_origen_id IN (SELECT id FROM votos WHERE usuario_id=?)", (usuario_id,))
+    compartidos_borrados = c.rowcount
+
+    # 5. Actualizamos el voto en la tabla de votos
+    c.execute("""
+        UPDATE votos 
+        SET voto_cifrado=?, nonce_aes=?, aad=?, clave_aes_cifrada=?, firma=?
+        WHERE usuario_id=?
+    """, (voto_cifrado, nonce_aes, aad, clave_sesion_cifr, signature, usuario_id))
+
     conn.commit()
     conn.close()
-    almacenar_voto(usuario_id, nuevo_voto, public_key)
+    logging.info(f"Voto actualizado y refirmado para usuario {usuario_id}")
+
+    if compartidos_borrados > 0:
+        logging.info(f"Se han borrado {compartidos_borrados} accesos compartidos al actualizar el voto de {usuario_id}")
+    print("✅ Tu voto ha sido actualizado correctamente.")
 
 
 
@@ -167,10 +241,15 @@ def compartir_voto(user_origen_id, email_destino, private_key_origen):
         )
 
         # 5. Guardamos los datos en la tabla de compartidos
-        c.execute("INSERT INTO votos_compartidos (voto_origen_id, receptor_id, clave_aes_receptor) VALUES (?, ?, ?)",
+        try:
+            c.execute("INSERT INTO votos_compartidos (voto_origen_id, receptor_id, clave_aes_receptor) VALUES (?, ?, ?)",
                   (voto_id, id_destino, clave_aes_para_receptor))
-        conn.commit()
-        print(f"Voto compartido exitosamente con {email_destino}.")
+            conn.commit()
+            print(f"Voto compartido exitosamente con {email_destino}.")
+        except sqlite3.IntegrityError:
+            print(f"Ya has compartido este voto previamente con {email_destino}.")
+        except Exception as e:
+            print(f"Error al compartir: {e}")
 
     except Exception as e:
         print(f"Error al compartir: {e}")
@@ -184,7 +263,7 @@ def ver_votos_compartidos(usuario_id, private_key):
 
     # 1. Buscamos los votos compartidos del usuario en la base de datos
     c.execute("""
-        SELECT u.email, v.voto_cifrado, v.nonce_aes, v.aad, vc.clave_aes_receptor
+        SELECT u.email, v.voto_cifrado, v.nonce_aes, v.aad, vc.clave_aes_receptor, v.firma, u.public_key
         FROM votos_compartidos vc
         JOIN votos v ON vc.voto_origen_id = v.id
         JOIN usuarios u ON v.usuario_id = u.id
@@ -200,7 +279,7 @@ def ver_votos_compartidos(usuario_id, private_key):
     
     print(f"\n--- Tienes {len(filas)} votos compartidos ---")
 
-    for email_emisor, voto_cifrado, nonce, aad, clave_para_receptor in filas:
+    for email_emisor, voto_cifrado, nonce, aad, clave_para_receptor, firma, pub_key_bytes in filas:
         try:
             # 2. Desciframos la clave AES utilizando la clave privada del receptor
             clave_aes = private_key.decrypt(
@@ -210,9 +289,27 @@ def ver_votos_compartidos(usuario_id, private_key):
 
             # 3. Una vez tenemos la clave AES, desciframos cada voto con ella
             aes = AESGCM(clave_aes)
-            voto_en_claro = aes.decrypt(nonce, voto_cifrado, aad).decode()
+            voto_en_claro_bytes = aes.decrypt(nonce, voto_cifrado, aad)
+            voto_texto = voto_en_claro_bytes.decode()
 
-            print(f"De {email_emisor}: {voto_en_claro}")
-        
+            # 4. Verificamos la firma digital del voto
+            # Cargamos la clave pública del emisor (el que envió el voto)
+            public_key_emisor = serialization.load_pem_public_key(pub_key_bytes)
+
+            try:
+                public_key_emisor.verify(
+                    firma,
+                    voto_en_claro_bytes, # Verificamos sobre los bytes originales
+                    padding.PSS(
+                        mgf=padding.MGF1(hashes.SHA256()),
+                        salt_length=padding.PSS.MAX_LENGTH
+                    ),
+                    hashes.SHA256()
+                )
+                print(f"De {email_emisor}: {voto_texto} | ✅ Firma VÁLIDA (Auténtico)") 
+
+            except InvalidSignature:
+                print(f"De {email_emisor}: [BLOQUEADO POR SEGURIDAD] | ❌ Firma INVÁLIDA")
+                    
         except Exception as e:
             print(f"De {email_emisor}: Error al descifrar el voto")
