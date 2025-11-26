@@ -26,7 +26,7 @@ def crear_tablas():
               email TEXT UNIQUE NOT NULL,
               password_hash BLOB NOT NULL,
               salt_auth BLOB NOT NULL,
-              public_key BLOB NOT NULL,     -- Clave Pública RSA (PEM)
+              public_cert BLOB,     -- Certificado de Clave Pública
               private_key_enc BLOB NOT NULL,-- Clave Privada RSA (Cifrada)
               salt_priv BLOB NOT NULL,
               nonce_priv BLOB NOT NULL

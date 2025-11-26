@@ -1,19 +1,5 @@
-2025-11-21 23:31:04,091 - WARNING - Ejecución interrumpida manualmente (Ctrl+C).
-2025-11-21 23:31:15,213 - INFO - Usuario registrado correctamente: pablo@.com
-2025-11-21 23:31:26,825 - INFO - Usuario registrado correctamente: alex@.com
-2025-11-21 23:31:39,190 - INFO - Usuario registrado correctamente: fresi@.com
-2025-11-21 23:31:48,460 - INFO - Inicio de sesión correcto: pablo@.com
-2025-11-21 23:31:52,752 - INFO - Firma digital generada para el usuario 1 (Algoritmo: RSA-PSS-SHA256)
-2025-11-21 23:31:52,755 - INFO - Voto almacenado con cifrado híbrido para usuario 1
-2025-11-21 23:32:26,153 - INFO - Inicio de sesión correcto: alex@.com
-2025-11-21 23:32:31,932 - INFO - Firma digital generada para el usuario 2 (Algoritmo: RSA-PSS-SHA256)
-2025-11-21 23:32:31,942 - INFO - Voto almacenado con cifrado híbrido para usuario 2
-2025-11-21 23:32:52,392 - WARNING - Ejecución interrumpida manualmente (Ctrl+C).
-2025-11-21 23:33:14,953 - INFO - Inicio de sesión correcto: alex@.com
-2025-11-21 23:33:39,343 - INFO - Inicio de sesión correcto: fresi@.com
-2025-11-21 23:33:46,092 - INFO - Firma digital generada para el usuario 3 (Algoritmo: RSA-PSS-SHA256)
-2025-11-21 23:33:46,102 - INFO - Voto almacenado con cifrado híbrido para usuario 3
-2025-11-21 23:34:08,133 - INFO - Inicio de sesión correcto: alex@.com
-2025-11-21 23:34:17,613 - INFO - Voto actualizado y refirmado para usuario 2
-2025-11-21 23:34:17,613 - INFO - Se han borrado 1 accesos compartidos al actualizar el voto de 2
-2025-11-21 23:34:49,005 - INFO - Inicio de sesión correcto: fresi@.com
+2025-11-26 21:07:01,090 - WARNING - Opción inválida introducida en menú: 
+2025-11-26 21:07:03,538 - WARNING - Intento de registro con contraseña demasiado corta.
+2025-11-26 21:07:03,538 - INFO - Registro fallido para : contraseña débil.
+2025-11-26 21:07:15,548 - INFO - Registro pendiente: pablo@.com
+2025-11-26 21:07:46,897 - INFO - Inicio de sesión correcto: pablo@.com
