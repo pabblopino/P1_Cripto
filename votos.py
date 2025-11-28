@@ -7,12 +7,14 @@ import logging
 import sqlite3
 from db import conectar
 from usuarios import obtener_info_receptor
+from certificados import verificar_cert
 
 # Hemos elegido el algoritmo de encriptación AES-GCM (en cryptography.io)
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
+from cryptography import x509
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Ruta del propio archivo votos.py
 DATOS_DIR = os.path.join(BASE_DIR, "datos")
@@ -261,9 +263,9 @@ def ver_votos_compartidos(usuario_id, private_key):
     conn = conectar()
     c = conn.cursor()
 
-    # 1. Buscamos los votos compartidos del usuario en la base de datos
+    # Primero buscamos los votos compartidos del usuario en la base de datos
     c.execute("""
-        SELECT u.email, v.voto_cifrado, v.nonce_aes, v.aad, vc.clave_aes_receptor, v.firma, u.public_key
+        SELECT u.email, v.voto_cifrado, v.nonce_aes, v.aad, vc.clave_aes_receptor, v.firma, u.public_cert
         FROM votos_compartidos vc
         JOIN votos v ON vc.voto_origen_id = v.id
         JOIN usuarios u ON v.usuario_id = u.id
@@ -279,8 +281,22 @@ def ver_votos_compartidos(usuario_id, private_key):
     
     print(f"\n--- Tienes {len(filas)} votos compartidos ---")
 
-    for email_emisor, voto_cifrado, nonce, aad, clave_para_receptor, firma, pub_key_bytes in filas:
+    for email_emisor, voto_cifrado, nonce, aad, clave_para_receptor, firma, cert_blob in filas:
         try:
+            # 1. Comprobamos que el usuario emisor tiene un certificado válido
+            if not cert_blob:
+                print(f"De {email_emisor}: [ERROR] El emisor no tiene certificado válido.")
+                continue
+            
+            cert_emisor = x509.load_pem_x509_certificate(cert_blob)
+
+            if not verificar_cert(cert_emisor):
+                print(f"De {email_emisor}: ❌ [PELIGRO] Certificado del emisor NO confiable (Falsificado o caducado).")
+                continue
+            
+            # Si es válido, entonces ya extraemos la clave pública del emisor
+            public_key_emisor = cert_emisor.public_key()
+
             # 2. Desciframos la clave AES utilizando la clave privada del receptor
             clave_aes = private_key.decrypt(
                 clave_para_receptor,
@@ -293,9 +309,6 @@ def ver_votos_compartidos(usuario_id, private_key):
             voto_texto = voto_en_claro_bytes.decode()
 
             # 4. Verificamos la firma digital del voto
-            # Cargamos la clave pública del emisor (el que envió el voto)
-            public_key_emisor = serialization.load_pem_public_key(pub_key_bytes)
-
             try:
                 public_key_emisor.verify(
                     firma,
