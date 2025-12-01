@@ -33,8 +33,8 @@ def generar_csr(nombre, email, private_key):
     """
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
         x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "MADRID"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UC3M"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "TOLEDO"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UC2M"),
         x509.NameAttribute(NameOID.COMMON_NAME, nombre),
         x509.NameAttribute(NameOID.EMAIL_ADDRESS, email),
     ])).sign(private_key, hashes.SHA256())
@@ -62,7 +62,7 @@ def verificar_cert(cert):
         print("❌ Error: La firma del certificado es inválida. Puede estar corrupto o haber sido modificado.")
         return False
 
-    tiempo_actual = datetime.now(timezone.utc) # !!! Poner datetime.now(timezone.utc)????
+    tiempo_actual = datetime.now() # !!! Poner datetime.now(timezone.utc)????
     if cert.not_valid_before > tiempo_actual: # !!! Poner not_valid_before_utc????
         print(f"Error: El certificado aún no es válido. Empieza el: {cert.not_valid_before}")
         return False

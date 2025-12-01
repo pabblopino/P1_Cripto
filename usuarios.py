@@ -77,7 +77,7 @@ def registrar_usuario(nombre, email, password):
                   (nombre, email, password_hash, salt_auth, None, private_key_enc, salt_priv, nonce_priv))
         conn.commit()
 
-        print(f"✅ Usuario registrado. CSR generado en: \"AC1/solicitudes/{email}.csr\"")
+        print(f"✅ Usuario registrado. CSR generado en: \"{DIR_SOLICITUDES}/{email}.csr\"")
         print("⚠️  AVISO: Tu cuenta está PENDIENTE de validación por la Autoridad (AC1).")
         logging.info(f"Registro pendiente: {email}")
                      
@@ -117,7 +117,7 @@ def autenticar_usuario(email, password):
             # 3.1 Nos aseguramos de que el certificado existe en la base de datos
             if not cert_blob:
                 # 3.1.1 Comprobamos si el certificado ya ha sido firmado y todavía no se había actualizado
-                ruta_crt = f"AC1/nuevoscerts/{email}.crt"
+                ruta_crt = f"{DIR_CERTIFICADOS}/{email}.crt"
 
                 if os.path.exists(ruta_crt):
                     print("⬇️  Certificado emitido encontrado. Instalando en perfil de usuario...")

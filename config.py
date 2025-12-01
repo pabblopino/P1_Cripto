@@ -9,7 +9,7 @@ LOG_PATH = os.path.join(DATOS_DIR, "app.log")
 # Rutas AC1
 RUTA_AC1_CERT = "AC1/ac1cert.pem"
 DIR_SOLICITUDES = "AC1/solicitudes"
-DIR_CERTIFICADOS = "AC1/nuevoscerts"
+DIR_CERTIFICADOS = "A"
 
 # Configuración Algoritmos Criptográficos
 N_ITERACIONES_PBKDF2 = 600000

@@ -8,6 +8,8 @@ import sqlite3
 from db import conectar
 from usuarios import obtener_info_receptor
 from certificados import verificar_cert
+from crypto_utils import firmar_datos, verificar_firma_datos, envolver_clave_rsa, desenvolver_clave_rsa
+from config import LOG_PATH
 
 # Hemos elegido el algoritmo de encriptación AES-GCM (en cryptography.io)
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -16,20 +18,12 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
 from cryptography import x509
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Ruta del propio archivo votos.py
-DATOS_DIR = os.path.join(BASE_DIR, "datos")
-LOG_PATH = os.path.join(DATOS_DIR, "app.log")
-
 # === CONFIGURACIÓN DE LOGGING ===
 logging.basicConfig(
     filename=LOG_PATH,
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-# Parámetros informativos
-ALGORITHM_NAME = "AES-GCM"
-KEY_LENGTH_BITS = 256
-AAD_DESCRIPTION = "'votacion'"
 
 
 def almacenar_voto(usuario_id, voto, public_key, private_key):
@@ -41,14 +35,7 @@ def almacenar_voto(usuario_id, voto, public_key, private_key):
     c = conn.cursor()
 
     # 1. Generamos la firma digital en el voto, con la clave privada del usuario
-    signature = private_key.sign(
-        voto.encode(),
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
+    signature = firmar_datos(voto, private_key)
     logging.info(f"Firma digital generada para el usuario {usuario_id} (Algoritmo: RSA-PSS-SHA256)")
 
     # 2. Generamos la clave de sesión AES que se va a usar para cifrar este voto
@@ -64,14 +51,7 @@ def almacenar_voto(usuario_id, voto, public_key, private_key):
     voto_cifrado = aes.encrypt(nonce_aes, voto.encode(), aad)
 
     # 4. Ciframos la clave AES con la clave pública RSA del usuario
-    clave_sesion_cifr = public_key.encrypt(
-        clave_sesion_aes,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
+    clave_sesion_cifr = envolver_clave_rsa(clave_sesion_aes, public_key)
 
     # 5. Guardamos todo en la base de datos
     c.execute(
@@ -95,14 +75,7 @@ def descifrar_voto(voto_dat, private_key, public_key):
 
     try:
         # 1. Recuperar la clave AES (Usando tu llave privada RSA)
-        clave_sesion_aes = private_key.decrypt(
-            clave_aes_cifrada_rsa,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+        clave_sesion_aes = desenvolver_clave_rsa(clave_aes_cifrada_rsa, private_key)
 
         # 2. Descifrar el voto con la clave AES recuperada
         aes = AESGCM(clave_sesion_aes)
@@ -110,25 +83,13 @@ def descifrar_voto(voto_dat, private_key, public_key):
         voto_plano = voto_plano_bytes.decode()
 
         # 3. Verificar la firma digital del voto
-        try:
-            public_key.verify(
-                firma,
-                voto_plano_bytes,
-                padding.PSS(
-                    mgf=padding.MGF1(hashes.SHA256()),
-                    salt_length=padding.PSS.MAX_LENGTH
-                ),
-                hashes.SHA256()
-            )
-            print("✅ Firma Digital VÁLIDA (Integridad confirmada)")
-            return voto_plano, "Verificación de firma digital exitosa."
-
-        except InvalidSignature as e:
+        if not verificar_firma_datos(firma, voto_plano_bytes, public_key):
             logging.critical(f"Fallo en verificación de firma: {e}")
             return None, "❌ ALERTA: Firma Digital INVÁLIDA (El voto podría estar manipulado)"
         
+        print("✅ Firma Digital VÁLIDA (Integridad confirmada)")
+        return voto_plano, "Verificación de firma digital exitosa."        
         
-    
     except Exception as e:
         logging.error(f"Error descifrando voto híbrido: {e}")
         return None, "❌ Error: Voto no descifrable (Clave privada incorrecta o datos corruptos)."
@@ -149,14 +110,7 @@ def actualizar_voto(usuario_id, nuevo_voto, public_key, private_key):
     c = conn.cursor()
 
     # 1. Generamos la nueva firma
-    signature = private_key.sign(
-        nuevo_voto.encode(),
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    )
+    signature = firmar_datos(nuevo_voto, private_key)
 
     # 2. Generamos nueva clave AES y ciframos el nuevo contenido
     clave_sesion_aes = AESGCM.generate_key(bit_length=256)
@@ -166,14 +120,7 @@ def actualizar_voto(usuario_id, nuevo_voto, public_key, private_key):
     voto_cifrado = aes.encrypt(nonce_aes, nuevo_voto.encode(), aad)
 
     # 3. Ciframos la nueva clave AES con RSA
-    clave_sesion_cifr = public_key.encrypt(
-        clave_sesion_aes,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
+    clave_sesion_cifr = envolver_clave_rsa(clave_sesion_aes, public_key)
 
     # 4. Borramos de la tabla votos_compartidos si es que era uno de ellos
     c.execute("DELETE FROM votos_compartidos WHERE voto_origen_id IN (SELECT id FROM votos WHERE usuario_id=?)", (usuario_id,))
@@ -231,16 +178,10 @@ def compartir_voto(user_origen_id, email_destino, private_key_origen):
     voto_id, _, _, _, clave_aes_emisor_enc = datos_voto # _ significa que son datos que no cogemos, no nos interesan 
     try:
         # 3. Desciframos la clave clave AES con la privada del emisor
-        clave_aes_emisor = private_key_origen.decrypt(
-            clave_aes_emisor_enc,
-            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-        )
+        clave_aes_emisor = desenvolver_clave_rsa(clave_aes_emisor_enc, private_key_origen)
 
         # 4. Ahora esta clave AES, la ciframos con la pública del receptor
-        clave_aes_para_receptor = public_key_destino.encrypt(
-            clave_aes_emisor,
-            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-        )
+        clave_aes_para_receptor = envolver_clave_rsa(clave_aes_emisor, public_key_destino)
 
         # 5. Guardamos los datos en la tabla de compartidos
         try:
@@ -298,10 +239,7 @@ def ver_votos_compartidos(usuario_id, private_key):
             public_key_emisor = cert_emisor.public_key()
 
             # 2. Desciframos la clave AES utilizando la clave privada del receptor
-            clave_aes = private_key.decrypt(
-                clave_para_receptor,
-                padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
-            )
+            clave_aes = desenvolver_clave_rsa(clave_para_receptor, private_key)
 
             # 3. Una vez tenemos la clave AES, desciframos cada voto con ella
             aes = AESGCM(clave_aes)
@@ -309,20 +247,10 @@ def ver_votos_compartidos(usuario_id, private_key):
             voto_texto = voto_en_claro_bytes.decode()
 
             # 4. Verificamos la firma digital del voto
-            try:
-                public_key_emisor.verify(
-                    firma,
-                    voto_en_claro_bytes, # Verificamos sobre los bytes originales
-                    padding.PSS(
-                        mgf=padding.MGF1(hashes.SHA256()),
-                        salt_length=padding.PSS.MAX_LENGTH
-                    ),
-                    hashes.SHA256()
-                )
-                print(f"De {email_emisor}: {voto_texto} | ✅ Firma VÁLIDA (Auténtico)") 
-
-            except InvalidSignature:
+            if not verificar_firma_datos(firma, voto_en_claro_bytes, public_key_emisor):
                 print(f"De {email_emisor}: [BLOQUEADO POR SEGURIDAD] | ❌ Firma INVÁLIDA")
+                
+            print(f"De {email_emisor}: {voto_texto} | ✅ Firma VÁLIDA (Auténtico)") 
                     
         except Exception as e:
             print(f"De {email_emisor}: Error al descifrar el voto")

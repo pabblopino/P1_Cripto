@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import logging
 from usuarios import registrar_usuario, autenticar_usuario
