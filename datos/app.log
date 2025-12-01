@@ -1,3 +1,11 @@
-2025-12-01 18:04:37,053 - INFO - Registro pendiente: pablo@.com
-2025-12-01 18:07:55,918 - INFO - Inicio de sesión correcto: pablo@.com
-2025-12-01 18:08:11,597 - INFO - Inicio de sesión correcto: pablo@.com
+2025-12-01 18:57:18,036 - INFO - Registro pendiente: pablo@.com
+2025-12-01 18:57:30,367 - INFO - Registro pendiente: alex@.com
+2025-12-01 18:57:30,367 - WARNING - Opción inválida introducida en menú: 
+2025-12-01 18:58:13,207 - INFO - Inicio de sesión correcto: pablo@.com
+2025-12-01 18:58:18,834 - INFO - Firma digital generada para el usuario 1 (Algoritmo: RSA-PSS-SHA256)
+2025-12-01 18:58:18,837 - INFO - Voto almacenado con cifrado híbrido para usuario 1
+2025-12-01 18:59:01,584 - INFO - Inicio de sesión correcto: alex@.com
+2025-12-01 18:59:05,178 - INFO - Firma digital generada para el usuario 2 (Algoritmo: RSA-PSS-SHA256)
+2025-12-01 18:59:05,188 - INFO - Voto almacenado con cifrado híbrido para usuario 2
+2025-12-01 18:59:22,024 - INFO - Inicio de sesión correcto: pablo@.com
+2025-12-01 18:59:39,338 - INFO - Inicio de sesión correcto: alex@.com

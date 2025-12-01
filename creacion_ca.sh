@@ -31,6 +31,14 @@ if [ $? -eq 0 ]; then
     echo "✅ ¡Autoridad de Certificación AC1 creada correctamente!"
     echo "   - Certificado: AC1/ac1cert.pem"
     echo "   - Clave privada: AC1/privado/ac1key.pem"
+
+    # Para finalizar, crea una copia de su certificado certificado en el almacén de confianza
+    cd ..
+    rm -rf Trust_Storage
+    mkdir Trust_Storage
+
+    cp AC1/ac1cert.pem Trust_Storage/
+    echo "✅ Certificado raíz instalado en Trust_Storage/ac1cert.pem"
 else
     echo "❌ Error al generar la AC1"
 fi

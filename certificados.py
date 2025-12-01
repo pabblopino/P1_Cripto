@@ -10,20 +10,29 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timezone
+from config import DIR_TRUST_STORAGE
 
-RUTA_AC1 = "AC1/ac1cert.pem"
-
-def cargar_ca_cert():
+def cargar_ca_storage():
     """
     Se encarga de cargar el certificado de la autoridad de certificación raíz AC1
     """
-    if not os.path.exists(RUTA_AC1):
-        print("❌ Error: No se encuentra el certificado de la Autoridad Raíz (ac1cert.pem).")
-        return None
+    trusted_ca_certs = []
+
+    if not os.path.exists(DIR_TRUST_STORAGE):
+        print(f"⚠️  Advertencia: No existe el almacén de confianza '{DIR_TRUST_STORAGE}'")
+        return []
     
-    with open(RUTA_AC1, "rb") as f:
-        ca_cert = x509.load_pem_x509_certificate(f.read())
-    return ca_cert
+    for archivo in os.listdir(DIR_TRUST_STORAGE):
+        if archivo.endswith(".pem") or archivo.endswith(".crt"):
+            ruta_completa = os.path.join(DIR_TRUST_STORAGE, archivo)
+            try:
+                with open(ruta_completa, "rb") as f:
+                    ca_cert = x509.load_pem_x509_certificate(f.read())
+                    trusted_ca_certs.append(ca_cert)
+            except Exception as e:
+                print(f"⚠️  No se pudo cargar la CA {archivo}: {e}")
+
+    return trusted_ca_certs
 
 
 def generar_csr(nombre, email, private_key):
@@ -51,9 +60,28 @@ def verificar_cert(cert):
     Verifica la validez del certificado de un usuario, comprobando su firma por
     AC1, así como su período de vigencia
     """
-    ca_cert = cargar_ca_cert()
+
+    # Primero buscamos a la autoridad raíz dentro de todas las de nuestro almacén de confianza 
+    trusted_ca_certs = cargar_ca_storage()
+
+    if not trusted_ca_certs:
+        print("❌ Error: El Almacén de Confianza está vacío.")
+        return False
+
+    ca_padre = None
+
+    for ca in trusted_ca_certs:
+        if ca.subject == cert.issuer:
+            ca_padre = ca
+            break
+    
+    if not ca_padre:
+        print(f"❌ Error: El emisor del certificado ({cert.issuer}) no está en nuestro Almacén de Confianza.")
+        return False
+
+    # Tras encontrar al padre, ya podemos proceder a verificar la cadena de certificación
     try:
-        cert.verify_directly_issued_by(ca_cert)
+        cert.verify_directly_issued_by(ca_padre)
 
     except ValueError:
         print("❌ Error: El certificado no fue emitido por la Autoridad de Certificación especificada.")
