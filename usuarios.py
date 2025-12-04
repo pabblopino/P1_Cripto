@@ -117,6 +117,7 @@ def autenticar_usuario(email, password):
                 # 3.1.1 Comprobamos si el certificado ya ha sido firmado y todavía no se había actualizado
                 ruta_crt = f"{DIR_CERTIFICADOS}/{email}.crt"
 
+                # Si existe, actualizamos la base de datos para que aparezca el certificado del usuario
                 if os.path.exists(ruta_crt):
                     print("⬇️  Certificado emitido encontrado. Instalando en perfil de usuario...")
                     with open(ruta_crt, "rb") as f:
@@ -141,15 +142,15 @@ def autenticar_usuario(email, password):
                 conn.close()
                 return None
         
-            # 4. Desciframos la clave privada y obtenemos la pública del certificadoo
+            # 4. Desciframos la clave privada y obtenemos la pública del certificado
             priv_bytes = descifrar_datos_aes(priv_enc, nonce_priv, password, salt_priv)
             
-            # 4. Deserializamos (Bytes -> Objeto Python)
+            # Deserializamos (Bytes -> Objeto Python)
             # Convertimos los bytes en objetos que Python entiende para poder usarlos luego
             private_key_obj = serialization.load_pem_private_key(priv_bytes, password=None)
             public_key_obj = user_cert.public_key()
 
-            # 5. Devolvemos las llaves al main para que pueda utilizarlas
+            # 5. Devolvemos las claves al main para que pueda utilizarlas
             print("Login del usuario correcto.")
             logging.info(f"Inicio de sesión correcto: {email}")
             return usuario_id, private_key_obj, public_key_obj

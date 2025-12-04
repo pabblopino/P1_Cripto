@@ -1,3 +1,7 @@
+"""
+Información de configuración necesaria para las funciones de
+nuestra aplicación
+"""
 import os
 
 # Rutas de Archivos

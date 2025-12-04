@@ -90,6 +90,7 @@ def verificar_cert(cert):
         print("❌ Error: La firma del certificado es inválida. Puede estar corrupto o haber sido modificado.")
         return False
 
+    # Si la cadena de certificación es correcta, comprobamos la validez de la fecha del certificado
     tiempo_actual = datetime.now()
     if cert.not_valid_before > tiempo_actual:
         print(f"Error: El certificado aún no es válido. Empieza el: {cert.not_valid_before}")
