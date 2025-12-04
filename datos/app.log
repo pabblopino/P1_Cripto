@@ -9,3 +9,5 @@
 2025-12-01 18:59:05,188 - INFO - Voto almacenado con cifrado híbrido para usuario 2
 2025-12-01 18:59:22,024 - INFO - Inicio de sesión correcto: pablo@.com
 2025-12-01 18:59:39,338 - INFO - Inicio de sesión correcto: alex@.com
+2025-12-01 19:01:53,543 - INFO - Inicio de sesión correcto: pablo@.com
+2025-12-01 22:13:14,874 - WARNING - Ejecución interrumpida manualmente (Ctrl+C).

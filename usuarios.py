@@ -4,7 +4,6 @@ sus datos, aplicando hash, y guardando estos datos en la base de datos
 """
 
 import os
-import hashlib
 import sqlite3
 import logging
 from db import conectar
@@ -19,7 +18,6 @@ from crypto_utils import (
 )
 
 # Imports para crear las llaves del usuario y cifrarlas
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography import x509
@@ -49,7 +47,7 @@ def registrar_usuario(nombre, email, password):
     salt_auth = os.urandom(16)
     password_hash = derivar_clave_aes(password, salt_auth)
     
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    private_key = generar_par_claves_rsa()
     
     # 2. Generamos del CSR (Solicitud de Firma)
     if not generar_csr(nombre, email, private_key):
@@ -66,7 +64,7 @@ def registrar_usuario(nombre, email, password):
     )
 
     #   3.2 Ahora la ciframos con AES usando la contraseña del usuario
-    salt_priv = os.urandom(16) # !! Hace falta salt??
+    salt_priv = os.urandom(16)
     private_key_enc, nonce_priv = cifrar_datos_aes(priv_bytes_raw, password, salt_priv)
 
     # 4. Guardamos todo en la base de datos

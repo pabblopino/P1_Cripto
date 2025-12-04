@@ -9,7 +9,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from datetime import datetime, timezone
+from datetime import datetime
 from config import DIR_TRUST_STORAGE
 
 def cargar_ca_storage():
@@ -90,12 +90,12 @@ def verificar_cert(cert):
         print("❌ Error: La firma del certificado es inválida. Puede estar corrupto o haber sido modificado.")
         return False
 
-    tiempo_actual = datetime.now() # !!! Poner datetime.now(timezone.utc)????
-    if cert.not_valid_before > tiempo_actual: # !!! Poner not_valid_before_utc????
+    tiempo_actual = datetime.now()
+    if cert.not_valid_before > tiempo_actual:
         print(f"Error: El certificado aún no es válido. Empieza el: {cert.not_valid_before}")
         return False
 
-    if cert.not_valid_after < tiempo_actual: # !!! Poner not_valid_after_utc????
+    if cert.not_valid_after < tiempo_actual:
         print(f"Error: El certificado ha caducado. Venció el: {cert.not_valid_after}")
         return False
     

@@ -3,7 +3,6 @@ Este archivo recoge las funciones con las cuales se crea y
 accede a la base de datos.
 """
 import sqlite3
-import os
 
 DB_PATH =  "datos/votacion.db"
 

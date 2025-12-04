@@ -13,9 +13,6 @@ from config import LOG_PATH
 
 # Hemos elegido el algoritmo de encriptación AES-GCM (en cryptography.io)
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.exceptions import InvalidSignature
 from cryptography import x509
 
 # === CONFIGURACIÓN DE LOGGING ===
